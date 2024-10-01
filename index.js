@@ -18,26 +18,38 @@ app.get("/", function (req, res) {
   res.sendFile(__dirname + "/views/index.html");
 });
 
-const isInvalidDate = (date) => date.toUTCString() === "Invalid Date";
+// Helper function to check if date is invalid
+const isInvalidDate = (date) => date.toString() === "Invalid Date";
 
 // your first API endpoint...
-app.get("/api/:date", (req, res) => {
-  let date = new Date(req.params.date);
+app.get("/api/:date?", (req, res) => {
+  const { date } = req.params;
 
-  if (isInvalidDate(date)) {
-    date = new Date(+req.params.date);
+  // If no date is provided, use the current date
+  if (!date) {
+    const currentDate = new Date();
+    return res.json({
+      unix: currentDate.getTime(),
+      utc: currentDate.toUTCString(),
+    });
   }
-  if (isInvalidDate(date)) {
-    res.json({ error: "Invalid Date" });
-    return;
-  }
-  res.json({ unix: date.getTime(), utc: date.toUTCString() });
-});
 
-app.get("/api", (req, res) => {
+  let parsedDate = new Date(date);
+
+  // If date string is invalid, try to parse as Unix timestamp
+  if (isInvalidDate(parsedDate)) {
+    parsedDate = new Date(parseInt(date));
+  }
+
+  // If still invalid, return error
+  if (isInvalidDate(parsedDate)) {
+    return res.json({ error: "Invalid Date" });
+  }
+
+  // Return valid date in both Unix and UTC formats
   res.json({
-    unix: new Date().getTime(),
-    utc: new Date().toUTCString(),
+    unix: parsedDate.getTime(),
+    utc: parsedDate.toUTCString(),
   });
 });
 
