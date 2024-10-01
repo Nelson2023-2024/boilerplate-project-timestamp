@@ -23,26 +23,21 @@ function isInvalidDate(date) {
 }
 
 // your first API endpoint...
-app.get("/api/:date", (req, res) => {
-  let date = new Date(req.params.date);
-
-  console.log(date);
-
-  if (isInvalidDate(date)) {
-    date = new Date(+req.params.date);
+app.get("/api/:date?", (req, res) => {
+  let date;
+  if (!req.params.date) {
+    date = new Date();
+  } else if (!isNaN(req.params.date)) {
+    date = new Date(parseInt(req.params.date));
+  } else {
+    date = new Date(req.params.date);
   }
+
   if (isInvalidDate(date)) {
     res.json({ error: "Invalid Date" });
-    return;
+  } else {
+    res.json({ unix: date.getTime(), utc: date.toUTCString() });
   }
-  res.json({ unix: date.getTime(), utc: date.toUTCString() });
-});
-
-app.get("/api", (req, res) => {
-  res.json({
-    unix: new Date().getTime(),
-    utc: new Date().toUTCString(),
-  });
 });
 
 // Listen on port set in environment variable or default to 3000
